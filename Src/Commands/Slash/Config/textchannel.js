@@ -1,12 +1,12 @@
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
-  name: "djrole",
+  name: "textchannel",
   category: "Config",
   permission: "MANAGE_GUILD",
   cooldown: 5,
-  description: "To set/reset the dj role of your server",
-  usage: "<set role> or <reset>",
+  description: "To set/reset the only channel where the bot should work",
+  usage: "<set channel> or <reset>",
   settings: {
     inVoiceChannel: false,
     sameVoiceChannel: false,
@@ -18,20 +18,21 @@ module.exports = {
   options: [
     {
       name: "set",
-      description: "Let's you set or change the dj role of your server",
+      description: "Let's you set or change the text channel of your server",
       type: 1,
       options: [
         {
-          name: "role",
-          description: "Choose the role that you want dj's to have",
-          type: 8,
+          name: "channel",
+          description: "Which channel should be the text channel?",
+          type: 7,
+          channelTypes: ["GUILD_TEXT"],
           required: true,
         },
       ],
     },
     {
       name: "reset",
-      description: "Resets the dj role of your server",
+      description: "Resets the text channel of your server",
       type: 1,
     },
   ],
@@ -41,30 +42,20 @@ module.exports = {
   run: async ({ client, interaction, emojis, guildData }) => {
     let subcommand = interaction.options.getSubcommand();
     if (subcommand === "set") {
-      let role = interaction.options.getRole("role");
-      if (["@everyone", "@here"].includes(role.name)) {
-        return interaction.reply({
-          ephemeral: true,
-          embeds: [
-            new MessageEmbed()
-              .setColor(client.settings.embed_color)
-              .setDescription(`${emojis.cross} Invalid role.`),
-          ],
-        });
-      }
-      if (guildData.djRole === role.id) {
+      let channel = interaction.options.getChannel("channel");
+      if (guildData.botChannel === channel.id) {
         return interaction.reply({
           ephemeral: true,
           embeds: [
             new MessageEmbed()
               .setColor(client.settings.embed_color)
               .setDescription(
-                `${emojis.cross} The dj role is already set to <@&${role.id}>.`
+                `${emojis.cross} The text channel is already set to ${channel}.`
               ),
           ],
         });
       }
-      guildData.djRole = role.id;
+      guildData.botChannel = channel.id;
       guildData.save();
       return interaction.reply({
         ephemeral: false,
@@ -72,31 +63,33 @@ module.exports = {
           new MessageEmbed()
             .setColor(client.settings.embed_color)
             .setDescription(
-              `${emojis.check} Successfully set the dj role to <@&${role.id}>.`
+              `${emojis.check} Successfully set the text channel to ${channel}.`
             ),
         ],
       });
     } else if (subcommand === "reset") {
-      if (!guildData.djRole) {
+      if (!guildData.botChannel) {
         return interaction.reply({
           ephemeral: true,
           embeds: [
             new MessageEmbed()
               .setColor(client.settings.embed_color)
               .setDescription(
-                `${emojis.cross} There is no dj role set for this server.`
+                `${emojis.cross} There is no text channel set for this server.`
               ),
           ],
         });
       }
-      guildData.djRole = null;
+      guildData.botChannel = null;
       guildData.save();
       return interaction.reply({
         ephemeral: false,
         embeds: [
           new MessageEmbed()
             .setColor(client.settings.embed_color)
-            .setDescription(`${emojis.check} Successfully reset the dj role.`),
+            .setDescription(
+              `${emojis.check} Successfully reset the text channel.`
+            ),
         ],
       });
     }
