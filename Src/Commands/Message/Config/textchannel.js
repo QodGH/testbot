@@ -1,13 +1,13 @@
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
-  name: "djrole",
-  aliases: ["dj"],
+  name: "textchannel",
+  aliases: [],
   category: "Config",
   permission: "MANAGE_GUILD",
   cooldown: 5,
-  description: "To set/reset the dj role of your server",
-  usage: "<set role> or <reset>",
+  description: "To set/reset the only channel where the bot should work",
+  usage: "<set channel> or <reset>",
   settings: {
     ownerOnly: false,
     inVoiceChannel: false,
@@ -39,64 +39,66 @@ module.exports = {
             new MessageEmbed()
               .setColor(client.settings.embed_color)
               .setDescription(
-                `${emojis.cross} Use the command again, and this time mention or provide the id of a role.`
+                `${emojis.cross} Use the command again, and this time mention or provide the id of a channelh.`
               ),
           ],
         });
       }
-      let role =
-        message.mentions.roles.first() ||
-        message.guild.roles.cache.get(args[1]);
-      if (!role || ["@everyone", "@here"].includes(role.name)) {
+      let channel =
+        message.mentions.channels.first() ||
+        (await message.guild.channels.fetch(args[1]));
+      if (!channel) {
         return message.channel.send({
           embeds: [
             new MessageEmbed()
               .setColor(client.settings.embed_color)
-              .setDescription(`${emojis.cross} Invalid role.`),
+              .setDescription(`${emojis.cross} Invalid channel.`),
           ],
         });
       }
-      if (guildData.djRole === role.id) {
+      if (guildData.botChannel === channel.id) {
         return message.channel.send({
           embeds: [
             new MessageEmbed()
               .setColor(client.settings.embed_color)
               .setDescription(
-                `${emojis.cross} The dj role is already set to <@&${role.id}>.`
+                `${emojis.cross} The text channel is already set to ${channel}`
               ),
           ],
         });
       }
-      guildData.djRole = role.id;
+      guildData.botChannel = channel.id;
       guildData.save();
       return message.channel.send({
         embeds: [
           new MessageEmbed()
             .setColor(client.settings.embed_color)
             .setDescription(
-              `${emojis.check} Successfully set the dj role to <@&${role.id}>.`
+              `${emojis.check} Successfully set the text channel to ${channel}`
             ),
         ],
       });
     } else if (args[0].toLowerCase() === "reset") {
-      if (!guildData.djRole) {
+      if (!guildData.botChannel) {
         return message.channel.send({
           embeds: [
             new MessageEmbed()
               .setColor(client.settings.embed_color)
               .setDescription(
-                `${emojis.cross} There is no dj role set for this server.`
+                `${emojis.cross} There is no text channel set for this server.`
               ),
           ],
         });
       }
-      guildData.djRole = null;
+      guildData.botChannel = null;
       guildData.save();
       return message.channel.send({
         embeds: [
           new MessageEmbed()
             .setColor(client.settings.embed_color)
-            .setDescription(`${emojis.check} Successfully reset the dj role.`),
+            .setDescription(
+              `${emojis.check} Successfully reset the text channel.`
+            ),
         ],
       });
     } else {
